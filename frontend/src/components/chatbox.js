@@ -1,24 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from 'axios';
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [error, setError] = useState(null); 
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim()) {
       const newMessages = [...messages, { sender: "user", text: input }];
       setMessages(newMessages);
       setInput("");
 
-      // AI response simulation
-      setTimeout(() => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: "ai", text: "response." },
-        ]);
-      }, 1000);
+      try {
+        const response = await axios.post("http://127.0.0.1:5001/get_question", {
+          question: input
+        });
+
+        if (response.data.error) {
+          setError(response.data.error); 
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { sender: "ai", text: response.data.message }, 
+          ]);
+        }
+      } catch (error) {
+        setError(error.message); 
+      }
     }
   };
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setError(null), 3000);
+    return () => clearTimeout(timeoutId); 
+  }, [error]); 
 
   return (
     <div className="flex flex-col items-center p-4 bg-white min-h-screen">
@@ -32,6 +47,7 @@ const ChatBox = () => {
               </div>
             </div>
           ))}
+          {error && <p className="text-red-500 mt-2">{error}</p>} 
         </div>
         <div className="flex mt-4">
           <input
