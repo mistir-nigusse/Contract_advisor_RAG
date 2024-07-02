@@ -1,10 +1,12 @@
 import React from 'react';
 import './index.css';
+import ChatBox from "./components/chatbox";
 
 const App = (props) => {
   return (
     <div>
-Hello world
+         <ChatBox/>
+
     </div>
   );
 };
