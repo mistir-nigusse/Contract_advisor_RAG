@@ -19,9 +19,10 @@ const ChatBox = () => {
 
         if (response.data.error) {
           setError(response.data.error); 
+        } else {
           setMessages((prevMessages) => [
             ...prevMessages,
-            { sender: "ai", text: response.data.message }, 
+            { sender: "ai", text: response.data.answer }, 
           ]);
         }
       } catch (error) {
@@ -38,7 +39,7 @@ const ChatBox = () => {
   return (
     <div className="flex flex-col items-center p-4 bg-white min-h-screen">
       <h1 className="text-3xl text-slate-800 mt-16 font-extrabold">LIZZY, your legal advisor</h1>
-      <div className="bg-slate-800 w-full max-w-lg rounded-lg shadow-lg p-4  mt-16">
+      <div className="bg-slate-800 w-full max-w-lg rounded-lg shadow-lg p-4 mt-16">
         <div className="h-96 overflow-y-auto">
           {messages.map((msg, index) => (
             <div key={index} className={`chat ${msg.sender === "user" ? "chat-end" : "chat-start"}`}>
