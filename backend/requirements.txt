@@ -1,0 +1,7 @@
+Flask
+PyPDF2
+langchain
+langchain-community
+langchain-openai
+chromadb
+openai
