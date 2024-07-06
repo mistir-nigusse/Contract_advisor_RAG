@@ -24,7 +24,8 @@ def get_question():
     pdf_processor = MyPDF(pdf_path)
     raw_text = pdf_processor.get_pdf_text()
     text_splitter = MyTextSplitter(raw_text)
-    text_chunks = text_splitter.get_text_chunks()
+    # text_chunks = text_splitter.get_text_chunks()
+    text_chunks = text_splitter.get_cosine_similarity_chunks()
     vector_store = MyVectorStore()
     chroma_vector_store = vector_store.embed_text_and_return_vectorstore(text_chunks)
 
