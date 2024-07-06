@@ -2,18 +2,12 @@
 import os
 import json
 import pandas as pd
+import numpy as np
 from ragas import evaluate
 from ragas.metrics import answer_relevancy, faithfulness, context_recall
-from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain_community.vectorstores.chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema.runnable import RunnableParallel
-from operator import itemgetter
+
 from datasets import Dataset
 
-# Load environment variables
 from dotenv import load_dotenv
 from backend.utils.langchain import MyLangChain
 from backend.utils.pdf_util import MyPDF
@@ -22,9 +16,8 @@ from backend.utils.vector_store_util import MyVectorStore
 
 load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
-os.environ["OPENAI_API_KEY"] = openai_api_key
 
-with open('backend/qa_pairs.json', 'r', encoding='utf-8') as f:
+with open('backend/data/qa_pairs.json', 'r', encoding='utf-8') as f:
     qa_pairs = json.load(f)
 
 evaluation_data = {
@@ -40,7 +33,7 @@ evaluation_data = {
 for item in qa_pairs:
     question = item['question']
     expected_answer = item['ground_truths']
-    pdf_processor = MyPDF('backend/Raptor_ontract.pdf')
+    pdf_processor = MyPDF('backend/data/Raptor_ontract.pdf')
     raw_text = pdf_processor.get_pdf_text()
     text_splitter = MyTextSplitter(raw_text)
     text_chunks = text_splitter.get_text_chunks()
@@ -66,20 +59,34 @@ for item in qa_pairs:
     print('Context as String:')
     print(context_list)
 
+    if not context_list or not ground_truth_list:
+        print(f"Empty context or ground truth for question: {question}")
+        continue
+
+    normalized_context_list = [context.lower().strip() for context in context_list]
+    normalized_ground_truth_list = [gt.lower().strip() for gt in ground_truth_list]
+
+    print('Normalized Contexts:', normalized_context_list)
+    print('Normalized Ground Truths:', normalized_ground_truth_list)
+
     evaluation_data["question"].append(question)
     evaluation_data["answer"].append(generated_answer)
-    evaluation_data["contexts"].append(context_list)
-    evaluation_data["ground_truths"].append(ground_truth_list)
+    evaluation_data["contexts"].append(normalized_context_list)
+    evaluation_data["ground_truths"].append(normalized_ground_truth_list)
 
     single_item_dataset = Dataset.from_dict({
         "question": [question],
         "answer": [generated_answer],
-        "contexts": [context_list],
-        "ground_truths": [ground_truth_list]
+        "contexts": [normalized_context_list],
+        "ground_truths": [normalized_ground_truth_list]
     })
 
     metrics = [answer_relevancy, faithfulness, context_recall]
-    single_result = evaluate(single_item_dataset, metrics=metrics)
+    try:
+        single_result = evaluate(single_item_dataset, metrics=metrics)
+    except RuntimeWarning as e:
+        print(f"Runtime warning encountered: {e}")
+        single_result = {"answer_relevancy": 0.0, "faithfulness": 0.0, "context_recall": 0.0}
 
     evaluation_data["answer_relevancy"].append(single_result['answer_relevancy'])
     evaluation_data["faithfulness"].append(single_result['faithfulness'])
@@ -87,6 +94,6 @@ for item in qa_pairs:
 
 df = pd.DataFrame(evaluation_data)
 
-df.to_csv('evaluation_results.csv', index=False)
+df.to_csv('backend/data/evaluation_results.csv', index=False)
 
 print(df)

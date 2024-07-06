@@ -12,7 +12,7 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-pdf_path = 'backend/data/Raptor_ontract.pdf'
+pdf_path = 'data/Raptor_ontract.pdf'
 
 openai_api_key = os.getenv('OPENAI_API_KEY') 
 
