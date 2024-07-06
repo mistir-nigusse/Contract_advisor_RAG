@@ -18,7 +18,7 @@ class MyLangChain:
 
         prompt = ChatPromptTemplate.from_template(template)
 
-        primary_qa_llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+        primary_qa_llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
 
         retriever = RunnableParallel(
             {
