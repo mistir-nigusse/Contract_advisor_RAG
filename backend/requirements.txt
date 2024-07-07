@@ -5,3 +5,8 @@ langchain-community
 langchain-openai
 chromadb
 openai
+Flask_cors
+ragas
+pyautogen
+scikit-learn
+dotenv
