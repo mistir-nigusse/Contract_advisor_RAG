@@ -8,7 +8,7 @@ class MyTextSplitter:
 
     def get_text_chunks(self):
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=800, chunk_overlap=200, length_function=len
+            chunk_size=1000, chunk_overlap=200, length_function=len
         )
         chunks = text_splitter.split_text(self.text)
         return chunks
@@ -39,7 +39,7 @@ class MyTextSplitter:
             similarities = chunk_tfidf.dot(all_tfidf_vectors[:i].T).toarray()[0]
 
             # If similarity is above a threshold (e.g., 0.7), add to current chunk
-            if any(sim > 0.7 for sim in similarities):
+            if any(sim > 0.7 for sim in similarities): 
                 current_chunk += " " + chunks[i]
             else:
                 # If not similar, start a new chunk
@@ -49,5 +49,5 @@ class MyTextSplitter:
         # Add the last chunk (if any)
         if current_chunk:
             chunked_text.append(current_chunk.strip())
-
+        print(chunked_text)
         return chunked_text

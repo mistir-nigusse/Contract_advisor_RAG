@@ -21,7 +21,7 @@ from datasets import Dataset
 
 # Load environment variables
 from dotenv import load_dotenv
-from backend.utils.langchain import MyLangChain
+from backend.utils.langchain_util import MyLangChain
 from backend.utils.pdf_util import MyPDF
 from backend.utils.text_splitter_util import MyTextSplitter
 from backend.utils.vector_store_util import MyVectorStore
@@ -29,6 +29,7 @@ from backend.utils.vector_store_util import MyVectorStore
 load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 os.environ["OPENAI_API_KEY"] = openai_api_key
+langchain = MyLangChain(api_key=openai_api_key)
 
 def load_qa_pairs(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -42,12 +43,14 @@ def split_text(raw_text):
     text_splitter = MyTextSplitter(raw_text)
     return text_splitter.get_cosine_similarity_chunks()
 
-def create_vector_store(text_chunks):
+def create_vector_store(question, text_chunks):
     vector_store = MyVectorStore()
-    return vector_store.embed_text_and_return_vectorstore(text_chunks)
+    hypothetical_answer = langchain.generate_hypothetical_answer(question)
+    combined_text = f"{question}\n{hypothetical_answer}"
+    return vector_store.embed_text_and_return_vectorstore(text_chunks + [combined_text])
 
 def generate_answer(question, retriever):
-    langchain = MyLangChain()
+    
     conversation_chain = langchain.generate_prompts_chain(base_retriever=retriever)
     result = conversation_chain.invoke({"question": question})
     response_content = result['response'].content
@@ -88,7 +91,7 @@ def main():
         expected_answer = item['ground_truths']
         raw_text = process_pdf('backend/data/Raptor_ontract.pdf')
         text_chunks = split_text(raw_text)
-        chroma_vector_store = create_vector_store(text_chunks)
+        chroma_vector_store = create_vector_store(question,text_chunks)
         retriever = MyVectorStore().get_retriever(chroma_vector_store)
         generated_answer, context_list = generate_answer(question, retriever)
 
@@ -114,7 +117,7 @@ def main():
         evaluation_data[key].extend([''] * (max_length - len(evaluation_data[key])))
 
     df = pd.DataFrame(evaluation_data)
-    df.to_csv('evaluation_results_2.csv', index=False)
+    df.to_csv('evaluation_results_3.csv', index=False)
     print(df)
 
 if __name__ == "__main__":
