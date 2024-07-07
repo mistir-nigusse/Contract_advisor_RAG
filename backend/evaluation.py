@@ -117,7 +117,7 @@ def main():
         evaluation_data[key].extend([''] * (max_length - len(evaluation_data[key])))
 
     df = pd.DataFrame(evaluation_data)
-    df.to_csv('evaluation_results_3.csv', index=False)
+    df.to_csv('evaluation_results.csv', index=False)
     print(df)
 
 if __name__ == "__main__":
