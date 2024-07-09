@@ -16,3 +16,6 @@ class MyVectorStore:
         retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
         return retriever
 
+    def retrieve_chunks(self, query, vectorstore):
+        retriever = self.get_retriever(vectorstore)
+        return retriever.get_relevant_documents(query)
